@@ -17,14 +17,16 @@ All data stored in students_data.dat
 using namespace std;
 
 // Maximum limits
-const int MAX_NAME_LENGTH = 50;
-const int MAX_STUDENTS = 10;
+const int MAX_ANSWER_LENGTH = 200;
+const int MAX_QUESTION_LENGTH = 200;
+const int MAX_FLASHCARDS = 20;
 
 class Flashcard
 {
 public:
     string question;
     string answer;
+    int difficulty=1;
 
 
     Flashcard() : question("")
@@ -38,17 +40,17 @@ public:
     }
 };
 
-class StudentsManager
+class FlashcardsManager
 {
 public:
-    Flashcard students[MAX_STUDENTS]; // Fixed array instead of vector
+    Flashcard students[MAX_FLASHCARDS]; // Fixed array instead of vector
     int count;                      // Number of students currently stored
 
-    StudentsManager() : count(0) {}
+    FlashcardsManager() : count(0) {}
 
     void addStudent(string question, string answer)
     {
-        if (count < MAX_STUDENTS)
+        if (count < MAX_FLASHCARDS)
         {
             students[count] = Flashcard(question, answer);
             count++;
@@ -76,16 +78,24 @@ public:
             {
                 cout << "Question: " << students[i].question << endl;
                 cout << "Answer: " << students[i].answer << endl;
-                cout << "Difficulty: "<<endl;
+                cout << "Difficulty: "<< students[i].difficulty << endl;
                 cout << endl;
             }
         }
     }
 };
 
+
+/**class ReviewSession {
+public:
+    FlashcardsManager &sm;
+
+
+};*/
+
 class App
 {
-    StudentsManager sm;
+    FlashcardsManager sm;
     string filename;
 
 public:
@@ -116,7 +126,7 @@ public:
             return;
         }
 
-        wf.write((char *)&sm, sizeof(StudentsManager));
+        wf.write((char *)&sm, sizeof(FlashcardsManager));
         wf.close();
         cout << "\n Saving all students data into file done " << endl;
     }
@@ -131,7 +141,7 @@ public:
             return;
         }
 
-        rf.read((char *)&sm, sizeof(StudentsManager));
+        rf.read((char *)&sm, sizeof(FlashcardsManager));
         rf.close();
         cout << "\n Loading all students data from file done" << endl;
     }
@@ -152,8 +162,8 @@ public:
             cout << "1. Display all students" << endl;
             cout << "2. Add new Flashcard" << endl;
             cout << "3. Review Flashcards" << endl;
-            cout << "4. Save StudentsManager to file" << endl;
-            cout << "5. Load StudentsManager from file" << endl;
+            cout << "4. Save FlashcardsManager to file" << endl;
+            cout << "5. Load FlashcardsManager from file" << endl;
             cout << "6. Exit" << endl;
             cout << "Enter choice: ";
             cin >> choice;
