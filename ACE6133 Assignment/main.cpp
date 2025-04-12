@@ -146,14 +146,15 @@ public:
     {
         int choice = 0;
 
-        while (choice != 5) // Changed from 6 to 5
+        while (choice != 6) // Changed from 6 to 5
         {
             cout << "\n===== Flashcard Management System =====" << endl;
             cout << "1. Display all students" << endl;
             cout << "2. Add new Flashcard" << endl;
-            cout << "3. Save StudentsManager to file" << endl;
-            cout << "4. Load StudentsManager from file" << endl;
-            cout << "5. Exit" << endl;
+            cout << "3. Review Flashcards" << endl;
+            cout << "4. Save StudentsManager to file" << endl;
+            cout << "5. Load StudentsManager from file" << endl;
+            cout << "6. Exit" << endl;
             cout << "Enter choice: ";
             cin >> choice;
             system("CLS");
@@ -166,13 +167,13 @@ public:
             case 2:
                 addNewStudent();
                 break;
-            case 3:
+            case 4:
                 saveData();
                 break;
-            case 4:
+            case 5:
                 loadData();
                 break;
-            case 5:
+            case 6:
                 cout << "Exiting program." << endl;
                 break;
             default:
