@@ -1,14 +1,3 @@
-/* This code demonstrate a simple student management system
-  User can add new students in the list by entering their roll number or ID
-  and the list of students can be saved in a binary file
-There are 3 classes in this program
-Student class - storing information about one student
-StudentManager class - store information about many students and managing these students objects
-App class - the class that has manage the running of the whole program and interact with user
-All data stored in students_data.dat
-
-*/
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h> // For system("cls")
@@ -26,25 +15,24 @@ class Flashcard
 public:
     string question;
     string answer;
-    int difficulty=1;
+    int difficulty;
 
 
-    Flashcard() : question("")
-    {
-        answer = " ";
-    }
+    Flashcard():question(""), answer(""),difficulty(1){}
+
 
     Flashcard(string question_id, string a_answer) : question(question_id)
     {
         answer = a_answer;
+        difficulty = 1;
     }
 };
 
 class FlashcardsManager
 {
 public:
-    Flashcard students[MAX_FLASHCARDS]; // Fixed array instead of vector
-    int count;                      // Number of students currently stored
+    Flashcard flash_card[MAX_FLASHCARDS]; // Fixed array instead of vector
+    int count;                      // Number of cards currently stored
 
     FlashcardsManager() : count(0) {}
 
@@ -52,7 +40,7 @@ public:
     {
         if (count < MAX_FLASHCARDS)
         {
-            students[count] = Flashcard(question, answer);
+            flash_card[count] = Flashcard(question, answer);
             count++;
             cout << "Flashcard added successfully!" << endl;
         }
@@ -76,9 +64,9 @@ public:
                  << "Total flashcards = " << count << endl;
             for (int i = 0; i < count; i++)
             {
-                cout << "Question: " << students[i].question << endl;
-                cout << "Answer: " << students[i].answer << endl;
-                cout << "Difficulty: "<< students[i].difficulty << endl;
+                cout << "Question: " << flash_card[i].question << endl;
+                cout << "Answer: " << flash_card[i].answer << endl;
+                cout << "Difficulty: "<< flash_card[i].difficulty << endl;
                 cout << endl;
             }
         }
@@ -86,16 +74,30 @@ public:
 };
 
 
-/**class ReviewSession {
+class ReviewSession {
 public:
-    FlashcardsManager &sm;
+    FlashcardsManager &fm;
+
+    ReviewSession(FlashcardsManager &flash):fm(flash) {}
+
+    void run(){
+        if(fm.count==0){
+            cout<<"No flashcards available for review. Please add some first."<<endl;
+            return;
+        }
+        else{
+            cout<<" "<<fm.count<<endl;
+            return;
+        }
+    }
 
 
-};*/
+
+};
 
 class App
 {
-    FlashcardsManager sm;
+    FlashcardsManager fm;
     string filename;
 
 public:
@@ -114,7 +116,7 @@ public:
         cout << "Enter answer: ";
         getline(cin, answer);
 
-        sm.addStudent(question_id, answer);
+        fm.addStudent(question_id, answer);
     }
 
     void saveData()
@@ -126,9 +128,9 @@ public:
             return;
         }
 
-        wf.write((char *)&sm, sizeof(FlashcardsManager));
+        wf.write((char *)&fm, sizeof(FlashcardsManager));
         wf.close();
-        cout << "\n Saving all students data into file done " << endl;
+        cout << "\n Saving all flashcards data into file done " << endl;
     }
 
     void loadData()
@@ -141,29 +143,33 @@ public:
             return;
         }
 
-        rf.read((char *)&sm, sizeof(FlashcardsManager));
+        rf.read((char *)&fm, sizeof(FlashcardsManager));
         rf.close();
-        cout << "\n Loading all students data from file done" << endl;
+        cout << "\n Loading all flashcards data from file done" << endl;
+    }
+    void reviewFlashcards() {
+        ReviewSession session(fm);
+        session.run();
     }
 
     void displayData()
     {
         cout << "\nDisplaying Flashcard data..." << endl;
-        sm.displayStudents();
+        fm.displayStudents();
     }
 
     void showMenu()
     {
         int choice = 0;
 
-        while (choice != 6) // Changed from 6 to 5
+        while (choice != 6)
         {
             cout << "\n===== Flashcard Management System =====" << endl;
-            cout << "1. Display all students" << endl;
-            cout << "2. Add new Flashcard" << endl;
-            cout << "3. Review Flashcards" << endl;
-            cout << "4. Save FlashcardsManager to file" << endl;
-            cout << "5. Load FlashcardsManager from file" << endl;
+            cout << "1. Display all flashcards" << endl;
+            cout << "2. Add new flashcard" << endl;
+            cout << "3. Review flashcards" << endl;
+            cout << "4. Save flashcards to file" << endl;
+            cout << "5. Load flashcards from file" << endl;
             cout << "6. Exit" << endl;
             cout << "Enter choice: ";
             cin >> choice;
@@ -176,6 +182,10 @@ public:
                 break;
             case 2:
                 addNewStudent();
+                break;
+            case 3:
+                reviewFlashcards();
+                cout<<"Coming Soon"<<endl;
                 break;
             case 4:
                 saveData();
