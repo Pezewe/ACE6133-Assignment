@@ -36,7 +36,7 @@ public:
 
     FlashcardsManager() : count(0) {}
 
-    void addStudent(string question, string answer)
+    void addFlashcard(string question, string answer)
     {
         if (count < MAX_FLASHCARDS)
         {
@@ -64,6 +64,7 @@ public:
                  << "Total flashcards = " << count << endl;
             for (int i = 0; i < count; i++)
             {
+                cout << "Flashcard "<<i+1 << endl;
                 cout << "Question: " << flash_card[i].question << endl;
                 cout << "Answer: " << flash_card[i].answer << endl;
                 cout << "Difficulty: "<< flash_card[i].difficulty << endl;
@@ -85,8 +86,21 @@ public:
             cout<<"No flashcards available for review. Please add some first."<<endl;
             return;
         }
+
         else{
-            cout<<" "<<fm.count<<endl;
+            for(int q_Num=0;q_Num<fm.count;q_Num++){
+                cout<<"Question "<<q_Num+1<<" = "<<fm.flash_card[q_Num].question<<endl;
+                cout<<"Press Enter to see the answer...";
+                cin.ignore();
+                cin.get();
+                cout<<"Answer ="<<fm.flash_card[q_Num].answer<<endl;
+                cout<<"Please rate the difficulty of the question(1 to 3): ";
+                cin>>fm.flash_card[q_Num].difficulty;
+                cout<<"Question difficulty marked as "<<fm.flash_card[q_Num].difficulty;
+                cout<<endl<<endl;
+
+            }
+
             return;
         }
     }
@@ -103,7 +117,7 @@ class App
 public:
     App(const string &file = "flashcard_data.dat") : filename(file) {}
 
-    void addNewStudent()
+    void addNewFlashcard()
     {
         string question_id;
         string answer;
@@ -116,7 +130,7 @@ public:
         cout << "Enter answer: ";
         getline(cin, answer);
 
-        fm.addStudent(question_id, answer);
+        fm.addFlashcard(question_id, answer);
     }
 
     void saveData()
@@ -181,11 +195,11 @@ public:
                 displayData();
                 break;
             case 2:
-                addNewStudent();
+                addNewFlashcard();
                 break;
             case 3:
                 reviewFlashcards();
-                cout<<"Coming Soon"<<endl;
+                cout<<"Review Session Ended"<<endl;
                 break;
             case 4:
                 saveData();
