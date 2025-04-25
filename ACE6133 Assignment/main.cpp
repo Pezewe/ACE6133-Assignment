@@ -2,6 +2,7 @@
 #include <fstream>
 #include <stdlib.h> // For system("cls")
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -86,22 +87,22 @@ public:
             cout<<"No flashcards available for review. Please add some first."<<endl;
             return;
         }
-
-        else{
-            for(int q_Num=0;q_Num<fm.count;q_Num++){
-                cout<<"Question "<<q_Num+1<<" = "<<fm.flash_card[q_Num].question<<endl;
-                cout<<"Press Enter to see the answer...";
-                cin.ignore();
-                cin.get();
-                cout<<"Answer ="<<fm.flash_card[q_Num].answer<<endl;
-                cout<<"Please rate the difficulty of the question(1 to 3): ";
-                cin>>fm.flash_card[q_Num].difficulty;
-                cout<<"Question difficulty marked as "<<fm.flash_card[q_Num].difficulty;
-                cout<<endl<<endl;
-
+        vector<int> reviewIndices;
+        for (int i = 0; i < fm.count; i++) {
+            for (int j = 0; j < fm.flash_card[i].difficulty; j++) {
+                reviewIndices.push_back(i);
             }
+        }
 
-            return;
+        for (int idx : reviewIndices) {
+            cout << "Question = " << fm.flash_card[idx].question << endl;
+            cout << "Press Enter to see the answer...";
+            cin.ignore();
+            cin.get();
+            cout << "Answer = " << fm.flash_card[idx].answer << endl;
+            cout << "Please rate the difficulty of the question (1 to 3): ";
+            cin >> fm.flash_card[idx].difficulty;
+            cout << "Question difficulty marked as " << fm.flash_card[idx].difficulty << endl << endl;
         }
     }
 
@@ -133,8 +134,7 @@ public:
         fm.addFlashcard(question_id, answer);
     }
 
-    void saveData()
-    {
+    void saveData(){
         ofstream wf(filename, ios::out | ios::binary);
         if (!wf)
         {
