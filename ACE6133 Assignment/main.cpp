@@ -110,29 +110,10 @@ public:
 
 };
 
-class App
-{
-    FlashcardsManager fm;
-    string filename;
-
+class FileHandler {
 public:
-    App(const string &file = "flashcard_data.dat") : filename(file) {}
-
-    void addNewFlashcard()
-    {
-        string question_id;
-        string answer;
-
-        cout << "Enter question: ";
-        cin.ignore();
-        getline(cin, question_id);
-
-
-        cout << "Enter answer: ";
-        getline(cin, answer);
-
-        fm.addFlashcard(question_id, answer);
-    }
+    FileHandler(const string &file, FlashcardsManager &manager)
+        : filename(file), fm(manager) {}
 
     void saveData(){
         ofstream wf(filename, ios::out | ios::binary);
@@ -161,6 +142,38 @@ public:
         rf.close();
         cout << "\n Loading all flashcards data from file done" << endl;
     }
+
+private:
+    string filename;
+    FlashcardsManager &fm;
+};
+
+class App
+{
+    FlashcardsManager fm;
+    FileHandler fileHandler;
+    string filename;
+
+public:
+    App(const string &file = "flashcard_data.dat") : filename(file), fileHandler(file,fm) {}
+
+    void addNewFlashcard()
+    {
+        string question_id;
+        string answer;
+
+        cout << "Enter question: ";
+        cin.ignore();
+        getline(cin, question_id);
+
+
+        cout << "Enter answer: ";
+        getline(cin, answer);
+
+        fm.addFlashcard(question_id, answer);
+    }
+
+
     void reviewFlashcards() {
         ReviewSession session(fm);
         session.run();
@@ -202,10 +215,10 @@ public:
                 cout<<"Review Session Ended"<<endl;
                 break;
             case 4:
-                saveData();
+                fileHandler.saveData();
                 break;
             case 5:
-                loadData();
+                fileHandler.loadData();
                 break;
             case 6:
                 cout << "Exiting program." << endl;
