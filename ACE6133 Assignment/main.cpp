@@ -1,28 +1,25 @@
 #include <iostream>
 #include <fstream>
-#include <stdlib.h> // For system("CLS")
+#include <stdlib.h>   // For system("CLS")
 #include <string>
 #include <vector>
 
 using namespace std;
 
-// Maximum limits
-const int MAX_ANSWER_LENGTH = 200;
+const int MAX_ANSWER_LENGTH   = 200;
 const int MAX_QUESTION_LENGTH = 200;
-const int MAX_FLASHCARDS = 20;
-
+const int MAX_FLASHCARDS      = 20;
 
 class Flashcard {
 public:
     string question;
     string answer;
-    int difficulty;
+    int mark;
 
-    Flashcard() : question(""), answer(""), difficulty(1) {}
-    Flashcard(string question_id, string a_answer)
-        : question(question_id), answer(a_answer), difficulty(1) {}
+    Flashcard() : question(""), answer(""), mark(0) {}
+    Flashcard(string q, string a)
+        : question(q), answer(a), mark(0) {}
 };
-
 
 class FlashcardsManager {
 public:
@@ -31,35 +28,36 @@ public:
 
     FlashcardsManager() : count(0) {}
 
-    void addFlashcard(string question, string answer) {
+    void addFlashcard(const string &question, const string &answer) {
         if (count < MAX_FLASHCARDS) {
             flash_card[count] = Flashcard(question, answer);
             count++;
             cout << "Flashcard added successfully!" << endl;
         } else {
-            cout << "Cannot add more flashcard. Maximum capacity reached." << endl;
+            cout << "Cannot add more flashcards. Maximum capacity reached." << endl;
         }
     }
 
-    void displayStudents() {
+    void displayFlashcards() {
         if (count == 0) {
-            cout << "No flashcard to display." << endl;
+            cout << "No flashcards to display." << endl;
             return;
         }
         cout << "\nTotal flashcards = " << count << endl;
         for (int i = 0; i < count; i++) {
-            cout << "Flashcard " << i + 1 << endl;
-            cout << "Question: " << flash_card[i].question << endl;
-            cout << "Answer: " << flash_card[i].answer << endl;
-            cout << "Difficulty: " << flash_card[i].difficulty << endl;
+            cout << "Flashcard " << (i + 1) << ":" << endl;
+            cout << "  Question: " << flash_card[i].question << endl;
+            cout << "  Answer:   " << flash_card[i].answer << endl;
+            cout << "  Mark:     " << flash_card[i].mark << endl;
             cout << endl;
         }
     }
 
-    void editFlashcard(int index, const string &newQuestion, const string &newAnswer) {
+    void editFlashcard(int index, const string &newQuestion, const string &newAnswer, const int &newMark) {
         if (index >= 0 && index < count) {
             flash_card[index].question = newQuestion;
-            flash_card[index].answer = newAnswer;
+            flash_card[index].answer   = newAnswer;
+            flash_card[index].mark     = newMark;
             cout << "Flashcard updated successfully." << endl;
         } else {
             cout << "Invalid flashcard index!" << endl;
@@ -79,7 +77,6 @@ public:
     }
 };
 
-
 class ReviewSession {
 public:
     FlashcardsManager &fm;
@@ -87,31 +84,47 @@ public:
     ReviewSession(FlashcardsManager &flash) : fm(flash) {}
 
     void run() {
-        if (fm.count == 0) {
-            cout << "No flashcards available for review. Please add some first." << endl;
-            return;
-        }
-
-        vector<int> reviewIndices;
-        for (size_t i = 0; i < fm.count; i++) {
-            for (int j = 0; j < fm.flash_card[i].difficulty; j++) {
-                reviewIndices.push_back(i);
+        vector<int> toReview;
+        for (int i = 0; i < fm.count; i++) {
+            if (fm.flash_card[i].mark < 3) {
+                toReview.push_back(i);
             }
         }
 
-        for (int idx : reviewIndices) {
-            cout << "Question = " << fm.flash_card[idx].question << endl;
+        if (toReview.empty()) {
+            cout << "All flashcards have mark >= 3. No cards to review right now." << endl;
+            return;
+        }
+
+        for (int idx : toReview) {
+            cout << "Question: " << fm.flash_card[idx].question << endl;
             cout << "Press Enter to see the answer...";
-            cin.ignore();
             cin.get();
-            cout << "Answer = " << fm.flash_card[idx].answer << endl;
-            cout << "Please rate the difficulty of the question (1 to 3): ";
-            cin >> fm.flash_card[idx].difficulty;
-            cout << "Question difficulty marked as " << fm.flash_card[idx].difficulty << endl << endl;
+
+            cout << "Answer: " << fm.flash_card[idx].answer << endl;
+
+            cout << "Did you remember the answer? (y/n): ";
+            char c;
+            cin >> c;
+            c = tolower(c);
+
+            if (c == 'y') {
+                fm.flash_card[idx].mark += 1;
+                cout << "Marked as remembered. New mark = " << fm.flash_card[idx].mark << endl;
+            } else if (c == 'n') {
+                fm.flash_card[idx].mark -= 1;
+                cout << "Marked as forgotten. New mark = " << fm.flash_card[idx].mark << endl;
+            } else {
+                cout << "Invalid input. No change to mark." << endl;
+            }
+
+
+            cin.ignore(10000, '\n');
+
+            cout << endl;
         }
     }
 };
-
 
 class FileHandler {
 public:
@@ -126,7 +139,7 @@ public:
         }
         wf.write((char *)&fm, sizeof(FlashcardsManager));
         wf.close();
-        cout << "\nSaving all flashcards data into file done" << endl;
+        cout << "\nSaving all flashcards data into file done." << endl;
     }
 
     void loadData() {
@@ -137,14 +150,13 @@ public:
         }
         rf.read((char *)&fm, sizeof(FlashcardsManager));
         rf.close();
-        cout << "\nLoading all flashcards data from file done" << endl;
+        cout << "\nLoading all flashcards data from file done." << endl;
     }
 
 private:
     string filename;
     FlashcardsManager &fm;
 };
-
 
 class App {
     FlashcardsManager fm;
@@ -156,45 +168,98 @@ public:
         : filename(file), fileHandler(file, fm) {}
 
     void addNewFlashcard() {
-        string question_id, answer;
+        string question, answer;
         cout << "Enter question: ";
-        cin.ignore();
-        getline(cin, question_id);
+        cin.ignore(10000, '\n');
+        getline(cin, question);
         cout << "Enter answer: ";
         getline(cin, answer);
-        fm.addFlashcard(question_id, answer);
+        fm.addFlashcard(question, answer);
     }
 
     void editFlashcard() {
-        int index;
-        string newQuestion, newAnswer;
-        fm.displayStudents();
+        if (fm.count == 0) {
+            cout << "No flashcards to edit." << endl;
+            return;
+        }
+        fm.displayFlashcards();
         cout << "Enter flashcard number to edit (1 to " << fm.count << "): ";
+        int index;
         cin >> index;
-        cin.ignore();
+        cin.ignore(10000, '\n');
+
+        if (index < 1 || index > fm.count) {
+            cout << "Invalid index." << endl;
+            return;
+        }
+
+        char edit_mark;
+        int newMark = fm.flash_card[index - 1].mark;
+        string newQuestion, newAnswer;
         cout << "Enter new question: ";
         getline(cin, newQuestion);
         cout << "Enter new answer: ";
         getline(cin, newAnswer);
-        fm.editFlashcard(index - 1, newQuestion, newAnswer);
+        cout << "Do you want to edit mark? (y/n): ";
+        cin >> edit_mark;
+        edit_mark = tolower(edit_mark);
+        if (edit_mark == 'y') {
+            cout << "Enter new mark: ";
+            cin >> newMark;
+        } else {
+            cout << "Mark kept as before." << endl;
+        }
+
+        fm.editFlashcard(index - 1, newQuestion, newAnswer, newMark);
     }
 
     void deleteFlashcard() {
-        int index;
-        fm.displayStudents();
+        if (fm.count == 0) {
+            cout << "No flashcards to delete." << endl;
+            return;
+        }
+        fm.displayFlashcards();
         cout << "Enter flashcard number to delete (1 to " << fm.count << "): ";
+        int index;
         cin >> index;
+        cin.ignore(10000, '\n');
+
+        if (index < 1 || index > fm.count) {
+            cout << "Invalid index." << endl;
+            return;
+        }
         fm.deleteFlashcard(index - 1);
     }
 
     void reviewFlashcards() {
-        ReviewSession session(fm);
-        session.run();
+        char again;
+
+
+        cin.ignore(10000, '\n');
+
+        do {
+
+
+            system("CLS");
+
+            ReviewSession session(fm);
+            session.run();
+            cout << "Review Session Ended." << endl;
+
+
+            cout << "Do you want to review again? (y/n): ";
+            cin >> again;
+            cin.ignore(10000, '\n');
+            cout << endl;
+            if(again=='y'){
+                cout<< "Press enter to continue..."<<endl;
+            }
+        } while (tolower(again) == 'y');
     }
 
     void displayData() {
         cout << "\nDisplaying Flashcard data..." << endl;
-        fm.displayStudents();
+        fm.displayFlashcards();
     }
 
     void showMenu() {
@@ -214,15 +279,32 @@ public:
             system("CLS");
 
             switch (choice) {
-                case 1: displayData(); break;
-                case 2: addNewFlashcard(); break;
-                case 3: reviewFlashcards(); cout << "Review Session Ended" << endl; break;
-                case 4: fileHandler.saveData(); break;
-                case 5: fileHandler.loadData(); break;
-                case 6: editFlashcard(); break;
-                case 7: deleteFlashcard(); break;
-                case 8: cout << "Exiting program." << endl; break;
-                default: cout << "Invalid choice! Please try again." << endl;
+                case 1:
+                    displayData();
+                    break;
+                case 2:
+                    addNewFlashcard();
+                    break;
+                case 3:
+                    reviewFlashcards();
+                    break;
+                case 4:
+                    fileHandler.saveData();
+                    break;
+                case 5:
+                    fileHandler.loadData();
+                    break;
+                case 6:
+                    editFlashcard();
+                    break;
+                case 7:
+                    deleteFlashcard();
+                    break;
+                case 8:
+                    cout << "Exiting program." << endl;
+                    break;
+                default:
+                    cout << "Invalid choice! Please try again." << endl;
             }
         }
     }
