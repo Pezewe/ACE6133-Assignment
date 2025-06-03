@@ -6,10 +6,12 @@
 
 using namespace std;
 
-const int MAX_ANSWER_LENGTH   = 200;
-const int MAX_QUESTION_LENGTH = 200;
+// Constants to define maximum limits
+const int MAX_ANSWER_LENGTH   = 2000;
+const int MAX_QUESTION_LENGTH = 2000;
 const int MAX_FLASHCARDS      = 20;
 
+// Flashcard class to hold question, answer, and review mark
 class Flashcard {
 public:
     string question;
@@ -21,6 +23,7 @@ public:
         : question(q), answer(a), mark(0) {}
 };
 
+// Manages a collection of flashcards
 class FlashcardsManager {
 public:
     Flashcard flash_card[MAX_FLASHCARDS];
@@ -28,6 +31,7 @@ public:
 
     FlashcardsManager() : count(0) {}
 
+    // Adds a new flashcard if there's room
     void addFlashcard(const string &question, const string &answer) {
         if (count < MAX_FLASHCARDS) {
             flash_card[count] = Flashcard(question, answer);
@@ -38,6 +42,7 @@ public:
         }
     }
 
+    // Displays all flashcards
     void displayFlashcards() {
         if (count == 0) {
             cout << "No flashcards to display." << endl;
@@ -53,6 +58,7 @@ public:
         }
     }
 
+    // Edits an existing flashcard
     void editFlashcard(int index, const string &newQuestion, const string &newAnswer, const int &newMark) {
         if (index >= 0 && index < count) {
             flash_card[index].question = newQuestion;
@@ -64,6 +70,7 @@ public:
         }
     }
 
+    // Deletes a flashcard by shifting the array elements
     void deleteFlashcard(int index) {
         if (index >= 0 && index < count) {
             for (int i = index; i < count - 1; i++) {
@@ -77,12 +84,14 @@ public:
     }
 };
 
+// Handles the flashcard review session
 class ReviewSession {
 public:
     FlashcardsManager &fm;
 
     ReviewSession(FlashcardsManager &flash) : fm(flash) {}
 
+    // Runs a review session for flashcards with mark < 3
     void run() {
         vector<int> toReview;
         for (int i = 0; i < fm.count; i++) {
@@ -108,6 +117,7 @@ public:
             cin >> c;
             c = tolower(c);
 
+            // Adjust mark based on user response
             if (c == 'y') {
                 fm.flash_card[idx].mark += 1;
                 cout << "Marked as remembered. New mark = " << fm.flash_card[idx].mark << endl;
@@ -118,37 +128,56 @@ public:
                 cout << "Invalid input. No change to mark." << endl;
             }
 
-
             cin.ignore(10000, '\n');
-
             cout << endl;
         }
     }
 };
 
+// Handles reading from and writing to a file
 class FileHandler {
 public:
     FileHandler(const string &file, FlashcardsManager &manager)
         : filename(file), fm(manager) {}
 
+    // Save all flashcard data to file
     void saveData() {
-        ofstream wf(filename, ios::out | ios::binary);
+        ofstream wf(filename);
         if (!wf) {
             cout << "Cannot open file for writing!" << endl;
             return;
         }
-        wf.write((char *)&fm, sizeof(FlashcardsManager));
+
+        for (int i = 0; i < fm.count; ++i) {
+            wf << fm.flash_card[i].question << endl;
+            wf << fm.flash_card[i].answer << endl;
+            wf << fm.flash_card[i].mark << endl;
+        }
+
         wf.close();
         cout << "\nSaving all flashcards data into file done." << endl;
     }
 
+    // Load flashcard data from file
     void loadData() {
-        ifstream rf(filename, ios::in | ios::binary);
+        ifstream rf(filename);
         if (!rf) {
             cout << "Cannot open file for reading!" << endl;
             return;
         }
-        rf.read((char *)&fm, sizeof(FlashcardsManager));
+
+        fm.count = 0;
+        string question, answer, markStr;
+
+        while (getline(rf, question) && getline(rf, answer) && getline(rf, markStr)) {
+            if (fm.count < MAX_FLASHCARDS) {
+                int mark = stoi(markStr);  // Convert string to integer
+                fm.flash_card[fm.count] = Flashcard(question, answer);
+                fm.flash_card[fm.count].mark = mark;
+                fm.count++;
+            }
+        }
+
         rf.close();
         cout << "\nLoading all flashcards data from file done." << endl;
     }
@@ -158,6 +187,7 @@ private:
     FlashcardsManager &fm;
 };
 
+// Main application controller
 class App {
     FlashcardsManager fm;
     FileHandler fileHandler;
@@ -167,6 +197,7 @@ public:
     App(const string &file = "flashcard_data.dat")
         : filename(file), fileHandler(file, fm) {}
 
+    // Adds a new flashcard
     void addNewFlashcard() {
         string question, answer;
         cout << "Enter question: ";
@@ -177,6 +208,7 @@ public:
         fm.addFlashcard(question, answer);
     }
 
+    // Edits an existing flashcard
     void editFlashcard() {
         if (fm.count == 0) {
             cout << "No flashcards to edit." << endl;
@@ -213,6 +245,7 @@ public:
         fm.editFlashcard(index - 1, newQuestion, newAnswer, newMark);
     }
 
+    // Deletes a flashcard
     void deleteFlashcard() {
         if (fm.count == 0) {
             cout << "No flashcards to delete." << endl;
@@ -231,37 +264,34 @@ public:
         fm.deleteFlashcard(index - 1);
     }
 
+    // Starts a flashcard review session
     void reviewFlashcards() {
         char again;
-
-
         cin.ignore(10000, '\n');
 
         do {
-
-
             system("CLS");
-
             ReviewSession session(fm);
             session.run();
             cout << "Review Session Ended." << endl;
-
 
             cout << "Do you want to review again? (y/n): ";
             cin >> again;
             cin.ignore(10000, '\n');
             cout << endl;
-            if(again=='y'){
-                cout<< "Press enter to continue..."<<endl;
+            if (again == 'y') {
+                cout << "Press enter to continue..." << endl;
             }
         } while (tolower(again) == 'y');
     }
 
+    // Displays all flashcards
     void displayData() {
         cout << "\nDisplaying Flashcard data..." << endl;
         fm.displayFlashcards();
     }
 
+    // Displays the main menu and handles user input
     void showMenu() {
         int choice = 0;
         while (choice != 8) {
@@ -310,6 +340,7 @@ public:
     }
 };
 
+// Entry point of the program
 int main() {
     App app;
     app.showMenu();
