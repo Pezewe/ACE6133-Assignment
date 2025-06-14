@@ -3,16 +3,16 @@ FIR filters have a finite impulse response, while IIR filters have an infinite i
 1
 Why are FIR filters generally preferred for linear phase applications?
 FIR filters can be designed to have exact linear phase, preserving the waveform shape of signals within the passband.
--1
+1
 What is the minimum sampling frequency of a 10kHz signal?
 20kHz
-0
-What is the purpose of applying FIR or IIR filters to a noisy audio signal?
-To remove unwanted frequency components (noise) and recover the clean signal.
 1
+The minimum sampling frequency of a 90Hz signal
+180Hz
+3
 Name one advantage of IIR filters over FIR filters.
 IIR filters can achieve a desired frequency response using fewer coefficients, making them more computationally efficient.
--1
+1
 The highest tower in Malaysia
 Merdeka 118
-0
+1
